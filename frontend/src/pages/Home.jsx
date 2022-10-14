@@ -8,6 +8,8 @@ import Col from 'react-bootstrap/Col';
 import Product from '../components/Product'
 import reducer from '../context/fetchProducts'
 import { Helmet } from 'react-helmet-async'
+import LoadingBox from '../components/LoadingBox'
+import MessageBox from '../components/MessageBox'
 
 
 const Home = () => {
@@ -36,8 +38,8 @@ const Home = () => {
       </Helmet>
       <h1>Featured Products</h1>
       <div className="products">
-        {loading ? <div><b>Loading... </b></div> :
-          error ? <div>{error}</div> :
+        {loading ? <LoadingBox /> :
+          error ? <MessageBox variant="danger">{error}</MessageBox> :
             <Row>
               {products.map(item => (
                 <Col sm={6} md={4} lg={3} className="mb-3">
