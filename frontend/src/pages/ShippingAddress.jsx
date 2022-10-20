@@ -7,8 +7,8 @@ import { Store } from '../context/Store'
 
 const ShippingAddress = () => {
     const navigate = useNavigate();
-    const {state, dispatch: ctsDispatch} = useContext(Store);
-    const {userInfo, cart: {shippingAddress}} = state;
+    const { state, dispatch: ctsDispatch } = useContext(Store);
+    const { userInfo, fullBox, cart: { shippingAddress } } = state;
 
     const [fullName, setFullName] = useState(shippingAddress.fullName || '');
     const [city, setCity] = useState(shippingAddress.city || '');
@@ -17,23 +17,30 @@ const ShippingAddress = () => {
     const [country, setCountry] = useState(shippingAddress.country || '');
 
     useEffect(() => {
-        if(!userInfo){
+        if (!userInfo) {
             navigate('/signin?redirect=/shipping')
         }
-    },[navigate, userInfo])
+    }, [navigate, userInfo])
     const handlerSubmit = e => {
         e.preventDefault();
         ctsDispatch({
             type: 'SAVE_SHOPPING_ADDRESS',
             payload: {
-                fullName, address, city, postalCode, country
+                fullName, address, city, postalCode, country,
+                location: shippingAddress.location
             }
         })
         localStorage.setItem('shippingAddress', JSON.stringify({
-            fullName, address, city, postalCode, country
+            fullName, address, city, postalCode, country,
+           location: shippingAddress.location
         }))
         navigate('/payment')
     }
+
+    useEffect(() => {
+        ctsDispatch({ type: 'SET_FULLBOX_OFF' })
+
+    }, [ctsDispatch, fullBox])
     return (
         <div>
             <Helmet>
@@ -78,6 +85,21 @@ const ShippingAddress = () => {
                             required
                         />
                     </Form.Group>
+                    <div className='mb-3'> 
+                        <Button variant='light' type="button" id="chooseMap"
+                           onClick={() => navigate('/map')}>
+                            Choose Location on Map
+                        </Button>
+                        {shippingAddress.location && shippingAddress.location.lat ?(
+                            <div>
+                                LAT: {shippingAddress.location.lat}
+                                LNG: {shippingAddress.location.lng}
+                            </div>)
+                            : (
+                                <div>No location</div>
+                            )
+                            }
+                    </div> 
                     <div className='mb-3'>
                         <Button variant='primary' type="submit">
                             Continue

@@ -1,10 +1,54 @@
 import express from 'express';
 import User from '../models/userModel.js';
 import bcrypt from 'bcryptjs';
-import {generateToken, isAuth} from '../utils.js';
+import {generateToken, isAdmin, isAuth} from '../utils.js';
 import expressAsyncHandler from 'express-async-handler';
 
 const userRouter = express.Router();
+
+userRouter.get('/', isAuth, isAdmin, expressAsyncHandler(async (req, res) => {
+    const user = await User.find({})
+    res.send(user)
+}))
+
+userRouter.get('/:id', isAuth, isAdmin, expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id)
+    if(user){
+        res.send(user) 
+    }
+    else {
+        res.status(404).send({message: "User not found"})
+    }
+}))
+
+userRouter.put('/:id', isAuth, isAdmin, expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id)
+    if(user){
+        user.name = req.body.name || user.name
+        user.email = req.body.email || user.email
+        user.isAdmin = Boolean(req.body.isAdmin)
+        const updatedUser = await user.save();
+        res.send({message: "User Updated", user: updatedUser}) 
+    }
+    else {
+        res.status(404).send({message: "User not found"})
+    }
+}))
+
+userRouter.delete('/:id', isAuth, isAdmin, expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id)
+    if(user){
+        if(user.isAdmin === true){
+            res.status(404).send({message: "Can't delete admin user"})
+            return;
+        }
+       await user.remove();
+       res.send({message: "User Deleted"});
+    } 
+    else {
+        res.status(404).send({message: "User not found"})
+    }
+}))
 
 userRouter.post('/signin', expressAsyncHandler(async (req, res) => {
     const user = await User.findOne({email: req.body.email})
